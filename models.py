@@ -56,10 +56,12 @@ class LayerNormalization(nn.Module):
         self.bias = nn.Parameter(torch.zeros(features)) # this is added
 
     def forward(self, x):
+        print(x.shape)
         x = x.type(torch.float32)
         mean = torch.mean(x, dim=-1, keepdim=True)
         std = torch.std(x, dim=-1, keepdim=True)
-        mean, std = mean.expand(x.shape[0], x.shape[1]), std.expand(x.shape[0], x.shape[1])
+        # mean, std = mean.expand(x.shape[0], x.shape[1]), std.expand(x.shape[0], x.shape[1])
+        mean, std = mean.expand(x.shape[0], 512), std.expand(x.shape[0], 512)
         print(f"shape of x: {x.shape}\nshape of mean: {mean.shape}\nshape of std: {std.shape}")
         return self.alpha * (x - mean) / (std + self.eps) + self.bias
 
