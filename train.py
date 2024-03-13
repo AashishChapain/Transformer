@@ -15,6 +15,7 @@ from config import get_config, get_weights_file_path
 
 from torch.utils.tensorboard import SummaryWriter
 
+import warnings
 from pathlib import Path
 from tqdm import tqdm
 
@@ -62,7 +63,7 @@ def get_ds(config):
     print(f"Max length of the target sentence is: {max_len_trg}")
 
     train_dataloader = DataLoader(train_ds, batch_size=config['batch_size'], shuffle=True)
-    val_dataloader = DataLoader(val_ds, batch_size=config['batch_size'], shuffle=True)
+    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
 
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_trg
 
@@ -108,8 +109,8 @@ def train_model(config):
             decoder_mask = batch['decoder_mask'].to(device) # (batch, 1, seq_len seq_len)
 
             # Run the tensors through the transformer
-            encoder_output = model.encoder(encoder_input, encoder_mask) # (batch, seq_len, d_model)
-            decoder_output = model.decoder(encoder_output, encoder_mask, decoder_input, decoder_mask) # (batch, seq_len, d_model)
+            encoder_output = model.encode(encoder_input, encoder_mask) # (batch, seq_len, d_model)
+            decoder_output = model.decode(encoder_output, encoder_mask, decoder_input, decoder_mask) # (batch, seq_len, d_model)
             proj_output = model.project(decoder_output) # (batch, seq_len, trg_vocab_size)
 
             label = batch['label'].to(device) # (batch, seq_len)
@@ -120,6 +121,7 @@ def train_model(config):
 
             # log the loss
             writer.add_scalar('train_loss', loss.item(), global_step)
+            writer.flush()
 
             loss.backward()
             optimizer.step()
@@ -138,6 +140,7 @@ def train_model(config):
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
     config = get_config()
     train_model(config=config)
 

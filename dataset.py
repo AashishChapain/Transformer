@@ -3,7 +3,7 @@ from torch import nn
 from torch.utils.data import Dataset
 
 def causal_mask(size):
-    mask = torch.tril(torch.ones(1, size, size), diagonal=1).type(torch.int)
+    mask = torch.tril(torch.ones(1, size, size), diagonal=1).type(torch.int64)
     return mask
 
 class BilingualDataset(Dataset):
